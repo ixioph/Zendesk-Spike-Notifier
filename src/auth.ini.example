@@ -1,0 +1,11 @@
+[default]
+SpikeDB = "../out/thePathToYourDatabase.csv"
+
+[zendesk]
+Domain = "yourZendeskDomain"
+Credentials = "YOURZENDESKEMAIL@ellation.com/token:YOURZENDESKAPIKEY"
+
+[email]
+Sender = "theSendingEmail@yourbiz.com"
+Recipient = "theRecipientEmail@yourbiz.com"
+ServiceFile = "../src/thePathToYourService.file"
