@@ -5,13 +5,19 @@
 # in the event of a "spike" (abnormally high ticket volume)
 # an email is sent to <reporters>
 
+from base64 import b64encode
+from numpy import dtype, float64
+from pandas.core.frame import DataFrame
+from pandas.tseries.offsets import Tick
+from tqdm import tqdm
 from datetime import datetime, timedelta
 import datetime as dt
-from tqdm import tqdm
 import configparser
 import logging
 import json
 import pandas as pd
+import requests
+import os
 
 config = configparser.ConfigParser()
 config.read('../src/auth.ini')
@@ -23,62 +29,69 @@ SENDER = config['email']['Sender'].strip('"')
 RECIPIENT = config['email']['Recipient'].strip('"')
 
 
-# NOTE: May be a better endpoint than the search API:
-# https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/#count-tickets
 def main(logger):
-    logger = logging.getLogger('Zendesk-Spike-Notifier')
-    logger.setLevel(logging.DEBUG)
-
-# create console handler and set level to debug
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-
-# create formatter
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-# add formatter to ch
-    ch.setFormatter(formatter)
-
-# add ch to logger
-    logger.addHandler(ch)
-
-# 'application' code
-    logger.debug('debug message')
-    logger.info('info message')
-    logger.warning('Warning, there is a Spike')
-    logger.error('error message')
 
     # load up the database for reading and writing to
-    db = None
+    # check if output file exists and create it if it doesn't
+    logger.info('Loading Database...')
+    columns = list(range(24))
+    TicketCount = pd.DataFrame(columns = columns)
 
-    # get the current time
-now = datetime.now()
-current_date = now.date()
-print('Date:', current_date)
-print(type(current_date))
+    logger.info('Checking if Output File exists...')
+    if os.path.exists(OUTPUT_FILE) == False:
+        logger.warning('Output File not found. Creating...')
+        TicketCount.to_csv(OUTPUT_FILE)
+        logger.info('Output File ready for usage.')
+    else:
+        logger.info('Output File already exists. Proceeding with uhhhh stuff.')
 
-current_time = now.time()
-print('Time', current_time)
-print(type(current_time))
-# subtract one hour into a second variable
-start = datetime.now()
-print('Current Time: ', current_time)
-n = -1
-now = dt.datetime.now()
-delta = dt.timedelta(hours=n)
-t = now.time()
-print(t)
-print((dt.datetime.combine(dt.date(1, 1, 1), t) + delta).time())
+    i = 1
+    end_date = datetime.utcnow().replace(microsecond=0, second=0, minute=0) # get the current time and round it down
+    start_date = (end_date + timedelta(hours= -i)) # subtract one hour into a second variable
 
- # perform zendesk search of all tickets between those times
-        logger.info('Searching tickets created over the past hour...')
-        tickets = timed_search(DOMAIN, AUTH, start, now)
-        # return the 'count' of the result and store it in the database
-        count = tickets['count']
-        logger.info('{} New Tickets.'.format(count))
-        # update the database
-        db_update(OUTPUT_FILE, db, count)
+    st0 = start_date.strftime("%Y-%m-%dT%H:%M:%SZ") #start date/time formatted for get request
+    st1 = end_date.strftime("%Y-%m-%dT%H:%M:%SZ") #end date/time formatted for get request
+
+    xdst0, xtst0 = start_date.strftime("%Y-%m-%d"), start_date.strftime("%H") #start date/time separately formatted for excel
+    xtst1 = end_date.strftime("%H")
+    # perform zendesk search of all tickets between those times
+    logger.info('Searching tickets created today between ' + str(xtst0) + ':00 and ' + str(xtst1) + ':00...')
+
+    # tickets = timed_search(DOMAIN, AUTH, start, now)
+    def get_ticket_count(DOMAIN): #get request that shows ticket count between start_date and end_date
+        logger.debug(AUTH[2:-1]) #uhhhhh not sure if this is needed here
+        header = {"Authorization": "Basic {}".format(str(AUTH)[2:-1])}
+        url = f"https://{DOMAIN}.zendesk.com/api/v2/search.json?query=type:ticket+created>{st0}+created<{st1}"
+
+        try:
+            r = requests.get(url, headers=header)
+            return r
+        except Exception as e:
+            logger.exception(
+            '{}\nError trying to call the Zendesk search API! '.format(str(e)))
+        exit()
+
+    TicketCountResult = get_ticket_count(DOMAIN)
+    TicketCountResult = json.loads(TicketCountResult.text) #all info related to tickets, including tags, counts are stored inside this JSON
+
+    logger.info(str(TicketCountResult['count']) + ' new tickets created today between ' + str(xtst0) + ':00 and ' + str(xtst1) + ':00...')
+    logger.info('Updating Output File...')
+
+    TicketCount.at[str(xdst0), int(xtst0)] = str(TicketCountResult["count"]) # return the 'count' of the result and store it in the database
+    TicketCount.to_csv(OUTPUT_FILE) # update the ouput file
+    exit()
+
+
+
+
+
+
+
+
+
+# logger.info('{} New Tickets.'.format(count))
+
+db_update(OUTPUT_FILE, db, count)
     except Exception as e:
         logger.exception(
             '{}\nError trying to call the Zendesk search API! '.format(str(e)))
