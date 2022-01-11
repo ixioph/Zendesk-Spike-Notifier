@@ -134,13 +134,21 @@ def calc_spike(db, count, col, spike=0.6):
     # else there is not a spike
     return False
 
-# takes the json output of tickets as an argument
-# returns a list of the top 10 tags over the past hour
+# takes the json output of tickets as an argument (requests.get().text['requests'], 
+# the number of tags to return, and a list of tags to omit from the search (i.e. - infrastructure tags)
+# returns a list of the top N tags in the source ticket list
 
-def frequent_tags(tickets):
+def frequent_tags(tickets, n_tags=10, omitted=[]):
+    ### TODO: implement n_tags functionality for output (low priority)
+    tags = {}
     for ticket in tickets:
         for tag in tqdm(ticket['tags']):
-            pass
+            if tag in omitted:
+                continue
+            if tag not in tags.keys():
+                tags[tag] = 1
+            else:
+                tags[tag] += 1
     return tags
 
 # takes the recipient email and frequent tags as arguments
