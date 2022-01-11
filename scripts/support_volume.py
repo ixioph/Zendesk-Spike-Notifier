@@ -17,6 +17,7 @@ import logging
 import json
 import pandas as pd
 import requests
+import smtplib
 import os
 
 config = configparser.ConfigParser()
@@ -151,11 +152,31 @@ def frequent_tags(tickets, n_tags=10, omitted=[]):
                 tags[tag] += 1
     return tags
 
-# takes the recipient email and frequent tags as arguments
+# takes the recipient email, hourly count, and frequent tags as arguments
+# auth should be a tuple containing the sender email id and sender email id password
 # builds a message and sends it to the recipient
 
-def send_report(to, tags, auth=None):
-    pass
+def send_report(to, count, tags, subject='Ticket Spike Alert!', auth=None):
+    try:
+        # creates SMTP session
+        email = smtplib.SMTP('smtp.gmail.com', 587)
+
+        # start TLS for security
+        email.starttls()
+
+        # Authentication
+        email.login(auth[0], auth[1])
+        message = "Greetings Crunchyroll Humans, \nMy calculations have detected the emergence of a potential spike in the past hour! \nWe’ve received {} tickets in the past hour, which is an increase of {} % over our average for this hour over the past 6 months. \nBelow you will find the most frequent tags over this past hour: \n{}".format(count, 'PLACEHOLDER', tags)
+
+        # send the email
+        email.sendmail(auth[0], to, message)
+
+        # terminate the session
+        email.quit()
+    except Exception as e:
+        print('ERROR: ', str(e))
+        exit()
+    return 0
 
 
 if __name__ =="__main__":
