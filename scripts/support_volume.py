@@ -123,11 +123,16 @@ def timed_search(dom, auth, start, finish):
 def db_update(file, db, count):
     pass
 
-# takes the database, as well as count of the past hour as arguments
+# takes the database/pandas dataframe, the ticket count of the past hour, 
+# the current column/hour, and the spike threshold as arguments
 # returns a boolean of whether it qualifies as a spike
 
-def calc_spike(db, count):
-    return True
+def calc_spike(db, count, col, spike=0.6):
+    if count > db[col].mean()*(spike+1):
+        # there is a spike
+        return True
+    # else there is not a spike
+    return False
 
 # takes the json output of tickets as an argument
 # returns a list of the top 10 tags over the past hour
