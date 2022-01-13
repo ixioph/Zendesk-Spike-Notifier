@@ -18,13 +18,8 @@ import logging
 import smtplib
 import json
 import os
-<<<<<<< HEAD
-
-
-=======
 import TicketCounter as TC
 
->>>>>>> 3985b282e335b26ad9858183db45d96c3031ab3f
 config = configparser.RawConfigParser()
 config.read('../src/auth.ini')
 OUTPUT_FILE = config['default']['SpikeDB'].strip('"')
@@ -33,16 +28,8 @@ AUTH = config['zendesk']['Credentials'].strip('"')
 SENDER = config['email']['Sender'].strip('"')
 PASS = config['email']['Password'].strip('"')
 RECIPIENT = config['email']['Recipient'].strip('"')
-<<<<<<< HEAD
- # Hard coding OMITTED temporarily
-OMITTED = ['notification_ready', 'processing_edgecases', 'label_processing', 'letsgetthisstarted', 
-            'processing_corrections', 'auto_responded', 'duplicate_check', 'child_ticket', 'no_survey', 'closed_by_merge']
-
-
-=======
 OMITTED = config['misc']['OmittedTags']
 
->>>>>>> 3985b282e335b26ad9858183db45d96c3031ab3f
 def main(logger):
 
     # load up the database for reading and writing to
@@ -54,13 +41,8 @@ def main(logger):
     logger.warning('Checking if Output File exists...')
     if os.path.exists(OUTPUT_FILE) == False:
         logger.warning('Output File not found. Creating...')
-<<<<<<< HEAD
-        TicketCount.to_csv(OUTPUT_FILE)
-        logger.warning('Output File ready for usage.')
-=======
         TC.run(logger)
         logger.warning('Output File updated and ready for usage.')
->>>>>>> 3985b282e335b26ad9858183db45d96c3031ab3f
     else:
         logger.warning('Output File already exists. Proceeding with uhhhh stuff.')
 
@@ -88,31 +70,12 @@ def main(logger):
         TicketCount.at[str(xdst0), int(xtst0)] = str(TicketCountResult["count"]) # return the 'count' of the result and store it in the database
         TicketCount.to_csv(OUTPUT_FILE) # update the ouput file
     except Exception as e: 
-<<<<<<< HEAD
-        print('Error getting and storing ticket count, ', str(e))
-=======
         logger.warning('Error getting and storing ticket count, ', str(e))
->>>>>>> 3985b282e335b26ad9858183db45d96c3031ab3f
         logger.exception('{}\nError trying to call the Zendesk search API! '.format(str(e)))
         exit()
 
     TicketCountHistory = pd.read_csv(OUTPUT_FILE) #the output file into a dataframe
     spike,delta = calc_spike(TicketCountHistory, TicketCountVar, xtst0)
-<<<<<<< HEAD
-    print("Is there a spike?", spike)
-    if spike:
-        tags = frequent_tags(TicketCountResult['results'])
-        print("These are the tags blablabla", tags)
-        try:
-            print("Sending report to {}\n".format(RECIPIENT), send_report(RECIPIENT, TicketCountVar, tags, delta, (SENDER, PASS)))
-        except Exception as e:
-            logger.exception('{}\nError sending the report!'.format(str(e)))
-        print('SUCCESS')
-
-# takes the zendesk account subdomain, and a start and end datetime (%Y-%m-%dT%H:%M:%SZ)
-# returns the result of a GET request to the Zendesk v2 API
-
-=======
     spike = True
     logger.warning("Is there a spike? {}".format(spike))
     if spike:
@@ -128,7 +91,6 @@ def main(logger):
 # takes the zendesk account subdomain, and a start and end datetime (%Y-%m-%dT%H:%M:%SZ)
 # returns the result of a GET request to the Zendesk v2 API
 
->>>>>>> 3985b282e335b26ad9858183db45d96c3031ab3f
 def get_ticket_count(dom, st0, st1): 
     print(b64encode(AUTH.encode('utf-8'))[2:-1])
     header = {"Authorization": "Basic {}".format(str(b64encode(AUTH.encode('utf-8')))[2:-1])}
@@ -154,28 +116,16 @@ def db_update(file, db, count):
 # takes the database/pandas dataframe, the ticket count of the past hour, 
 # the current column/hour, and the spike threshold as arguments
 # returns a boolean of whether it qualifies as a spike and the % increase over the mean
-<<<<<<< HEAD
-
-def calc_spike(db, count, col, spike=0.6):
-    threshold = db[col].mean()*(spike+1)
-    return count > threshold, (count/db[col].mean())*100
-
-=======
 
 def calc_spike(db, count, col, spike=0.6):
     threshold = db[col].mean()*(spike+1)
     return count > threshold, (count - db[col].mean()) / db[col].mean() * 100
 
->>>>>>> 3985b282e335b26ad9858183db45d96c3031ab3f
 # takes the json output of tickets as an argument (requests.get().text['results'], 
 # the number of tags to return, and a list of tags to omit from the search (i.e. - infrastructure tags)
 # returns a list of the top N tags in the source ticket list
 
 def frequent_tags(tickets, n_tags=10, omitted=OMITTED):
-<<<<<<< HEAD
-    ### TODO: implement n_tags functionality for output (low priority)
-=======
->>>>>>> 3985b282e335b26ad9858183db45d96c3031ab3f
     tags = {}
     for ticket in tickets:
         for tag in ticket['tags']:
@@ -185,12 +135,8 @@ def frequent_tags(tickets, n_tags=10, omitted=OMITTED):
                 tags[tag] = 1
             else:
                 tags[tag] += 1
-<<<<<<< HEAD
-    return tags
-=======
     top_tags = sorted(tags.items(), key=lambda x: x[1], reverse=True)[:n_tags]
     return top_tags
->>>>>>> 3985b282e335b26ad9858183db45d96c3031ab3f
     
 
 # takes the recipient email, hourly count, and frequent tags as arguments
