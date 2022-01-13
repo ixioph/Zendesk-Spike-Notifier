@@ -5,20 +5,15 @@
 # in the event of a "spike" (abnormally high ticket volume)
 # an email is sent to <reporters>
 
-
-
-from pandas.tseries.offsets import Tick
 from datetime import datetime, timedelta
-from base64 import b64encode
-import datetime as dt
 import configparser
 import pandas as pd
-import requests
 import logging
 import smtplib
 import json
 import os
 import TicketCounter as TC
+
 
 config = configparser.RawConfigParser()
 config.read('../src/auth.ini')
@@ -29,6 +24,8 @@ SENDER = config['email']['Sender'].strip('"')
 PASS = config['email']['Password'].strip('"')
 RECIPIENT = config['email']['Recipient'].strip('"')
 OMITTED = config['misc']['OmittedTags']
+N_HOURS = 4380
+SPIKE_THRESHOLD = 0.6
 
 def main(logger):
 
@@ -41,14 +38,16 @@ def main(logger):
     logger.warning('Checking if Output File exists...')
     if os.path.exists(OUTPUT_FILE) == False:
         logger.warning('Output File not found. Creating...')
-        TC.run(logger)
-        logger.warning('Output File updated and ready for usage.')
+        TC.run(logger, OUTPUT_FILE, N_HOURS, DOMAIN, AUTH)
+        logger.warning('Output File generated and ready for usage.')
     else:
         logger.warning('Output File already exists. Proceeding with uhhhh stuff.')
 
-    i = 1
+    # TODO: update this
+    # can we move some of this functionality to TC.get_formatted_datetimes()?
+    # what is the importance of xtst1?
     end_date = datetime.utcnow().replace(microsecond=0, second=0, minute=0) # get the current time and round it down
-    start_date = (end_date + timedelta(hours= -i)) # subtract one hour into a second variable
+    start_date = (end_date + timedelta(hours= -1)) # subtract one hour into a second variable
 
     st0 = start_date.strftime("%Y-%m-%dT%H:%M:%SZ") #start date/time formatted for get request
     st1 = end_date.strftime("%Y-%m-%dT%H:%M:%SZ") #end date/time formatted for get request
@@ -58,13 +57,13 @@ def main(logger):
 
     try:
         # perform zendesk search of all tickets between those times
-        logger.warning('Searching tickets created today between ' + str(xtst0) + ':00 and ' + str(xtst1) + ':00...')
+        logger.warning('Searching tickets created today between {}:00 and {}:00...'.format(xtst0,xtst1))
 
-        TicketCountResult = get_ticket_count(DOMAIN, st0, st1)
+        TicketCountResult = TC.get_ticket_count(DOMAIN, AUTH, st0, st1)
         TicketCountResult = json.loads(TicketCountResult.text) #all info related to tickets, including tags, counts are stored inside this JSON
 
         TicketCountVar = TicketCountResult['count'] #int variable to use later
-        logger.warning(str(TicketCountResult['count']) + ' new tickets created today between ' + str(xtst0) + ':00 and ' + str(xtst1) + ':00...')
+        logger.warning(str(TicketCountResult['count']) + ' new tickets created today between {}:00 and {}:00...'.format(xtst0,xtst1))
         logger.warning('Updating Output File...')
 
         TicketCount.at[str(xdst0), int(xtst0)] = str(TicketCountResult["count"]) # return the 'count' of the result and store it in the database
@@ -88,36 +87,11 @@ def main(logger):
             logger.exception('{}\nError sending the report!'.format(str(e)))
         logger.warning('SUCCESS')
 
-# takes the zendesk account subdomain, and a start and end datetime (%Y-%m-%dT%H:%M:%SZ)
-# returns the result of a GET request to the Zendesk v2 API
-
-def get_ticket_count(dom, st0, st1): 
-    print(b64encode(AUTH.encode('utf-8'))[2:-1])
-    header = {"Authorization": "Basic {}".format(str(b64encode(AUTH.encode('utf-8')))[2:-1])}
-    print(header)
-    url = "https://{}.zendesk.com/api/v2/search.json?query=type:ticket+created>{}+created<{}".format(dom, st0, st1)
-
-    try:
-        r = requests.get(url, headers=header)
-        print(r)
-        return r
-        ## if r =/= 200 then puke out an exception
-    except Exception as e:
-        logger.exception(
-        '{}\nError trying to call the Zendesk search API! '.format(str(e)))
-        exit()
-
-# takes the output filename, database, and count of past hour as arguments
-# saves out the updated db to the file
-
-def db_update(file, db, count):
-    pass
-
 # takes the database/pandas dataframe, the ticket count of the past hour, 
 # the current column/hour, and the spike threshold as arguments
 # returns a boolean of whether it qualifies as a spike and the % increase over the mean
 
-def calc_spike(db, count, col, spike=0.6):
+def calc_spike(db, count, col, spike=SPIKE_THRESHOLD):
     threshold = db[col].mean()*(spike+1)
     return count > threshold, (count - db[col].mean()) / db[col].mean() * 100
 
@@ -137,7 +111,6 @@ def frequent_tags(tickets, n_tags=10, omitted=OMITTED):
                 tags[tag] += 1
     top_tags = sorted(tags.items(), key=lambda x: x[1], reverse=True)[:n_tags]
     return top_tags
-    
 
 # takes the recipient email, hourly count, and frequent tags as arguments
 # auth should be a tuple containing the sender email id and sender email id password
@@ -171,6 +144,9 @@ def send_report(to, count, tags, delta, auth = None, subject='Ticket Spike Alert
         print('ERROR: ', str(e))
         exit()
     return 0
+
+
+
 
 if __name__ =="__main__":
     # TODO: set logging level based on input
