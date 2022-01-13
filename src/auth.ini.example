@@ -7,5 +7,5 @@ Credentials = "YOURZENDESKEMAIL@yourbiz.com/token:YOURZENDESKAPIKEY"
 
 [email]
 Sender = "theSendingEmail@yourbiz.com"
+Password = "yourSendingEmailPassword"
 Recipient = "theRecipientEmail@theirbiz.com"
-ServiceFile = "../src/thePathToYourService.file"
