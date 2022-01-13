@@ -42,7 +42,7 @@ def main(logger):
     if os.path.exists(OUTPUT_FILE) == False:
         logger.warning('Output File not found. Creating...')
         TC.run(logger)
-        logger.warning('Output File ready for usage.')
+        logger.warning('Output File updated and ready for usage.')
     else:
         logger.warning('Output File already exists. Proceeding with uhhhh stuff.')
 

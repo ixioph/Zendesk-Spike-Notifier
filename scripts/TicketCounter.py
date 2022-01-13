@@ -19,14 +19,12 @@ DOMAIN = config['zendesk']['Domain'].strip('"')
 AUTH = config['zendesk']['Credentials'].strip('"')
 
 def run(logger):
-  logger.warning('Creating Output File.')
   columns = list(range(24))
   TicketCount = pd.DataFrame(columns = columns)
   TicketCount.to_csv(OUTPUT_FILE)
-  logger.warning("Output File ready for usage.")
 
   i = 0
-  logger.warning('This is gonna take a while. Go drink some tea.')
+  logger.warning('Pupulating Output File. This is gonna take a while. Go drink some tea.')
   while i < 4: #CHANGE THIS TO NR OF HOURS NEEDED (4380 HOURS IN HALF A YEAR)
     i = i + 1
     now = datetime.utcnow().replace(microsecond=0, second=0, minute=0)
@@ -42,7 +40,6 @@ def run(logger):
 
     TicketCount.at[str(xdst0), u] = str(lst["count"])
     TicketCount.to_csv(OUTPUT_FILE)
-  logger.warning("Output File successfully updated!")
 
 def get_ticket_numbers(dom, st0, st1):
   print(b64encode(AUTH.encode('utf-8'))[2:-1])
