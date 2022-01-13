@@ -10,15 +10,21 @@ import configparser
 import logging
 import json
 
-
+print('Before the fall')
 config = configparser.ConfigParser()
 config.read('../src/auth.ini')
-OUTPUT_FILE = config['default']['SpikeDB'].strip('"')
+print(config)
+print('HHHHHHHHHHHHHHHHHHHHHHHHHH'*5)
+print(config['DEFAULT']['Test'])
+OUTPUT_FILE = config['DEFAULT']['SpikeDB'].strip('"')
 SERVICE_FILE = config['email']['ServiceFile'].strip('"')
 DOMAIN = config['zendesk']['Domain'].strip('"')
 AUTH = config['zendesk']['Credentials'].strip('"')
 SENDER = config['email']['Sender'].strip('"')
 RECIPIENT = config['email']['Recipient'].strip('"')
+
+print(OUTPUT_FILE)
+exit()
 
 
 ## NOTE: May be a better endpoint than the search API: 
