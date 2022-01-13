@@ -9,3 +9,6 @@ Credentials = "YOURZENDESKEMAIL@yourbiz.com/token:YOURZENDESKAPIKEY"
 Sender = "theSendingEmail@yourbiz.com"
 Password = "yourSendingEmailPassword"
 Recipient = "theRecipientEmail@theirbiz.com"
+
+[misc]
+OmittedTags = ["list", "of", "tags", "to", "omit"]
