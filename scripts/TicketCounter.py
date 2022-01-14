@@ -16,7 +16,7 @@ def run(logger, filename, n_hours, domain, auth):
   logger.warning('Populating Output File. This is gonna take a while. Go drink some tea.')
   try:
     for i in range(n_hours): # (4380 HOURS IN HALF A YEAR)
-      st0, st1, xdst0, xtst0 = get_formatted_datetimes(i)
+      st0, st1, xdst0, xtst0, xtst1 = get_formatted_datetimes(i)
 
       lst = get_ticket_count(domain, auth, st0, st1)
       lst = json.loads(lst.text)
@@ -32,11 +32,15 @@ def run(logger, filename, n_hours, domain, auth):
 def get_formatted_datetimes(t_delta):
   now = datetime.utcnow().replace(microsecond=0, second=0, minute=0)
   start_date = (now + timedelta(hours= -t_delta))
-  st0 = start_date.strftime("%Y-%m-%dT%H:%M:%SZ") #start date/time formatted for get request
+  #start date/time formatted for get request
+  st0 = start_date.strftime("%Y-%m-%dT%H:%M:%SZ") 
   sub_start_date = (start_date + timedelta(hours= 1))
-  st1 = sub_start_date.strftime("%Y-%m-%dT%H:%M:%SZ") #end date/time formatted for get request
-  xdst0, xtst0 = start_date.strftime("%Y-%m-%d"), start_date.strftime("%H") #date/time separately formatted for excel
-  return st0, st1, xdst0, xtst0
+  #end date/time formatted for get request
+  st1 = sub_start_date.strftime("%Y-%m-%dT%H:%M:%SZ") 
+  #date/time separately formatted for excel
+  xdst0, xtst0 = start_date.strftime("%Y-%m-%d"), start_date.strftime("%H") 
+  xtst1 = now.strftime("%H")
+  return st0, st1, xdst0, xtst0, xtst1
 
 # takes the zendesk account subdomain, and a start and end datetime (%Y-%m-%dT%H:%M:%SZ)
 # returns the result of a GET request to the Zendesk v2 API

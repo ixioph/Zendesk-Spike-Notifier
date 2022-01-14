@@ -5,7 +5,6 @@
 # in the event of a "spike" (abnormally high ticket volume)
 # an email is sent to <reporters>
 
-from datetime import datetime, timedelta
 import configparser
 import pandas as pd
 import logging
@@ -43,37 +42,28 @@ def main(logger):
     else:
         logger.warning('Output File already exists. Proceeding with uhhhh stuff.')
 
-    # TODO: update this
-    # can we move some of this functionality to TC.get_formatted_datetimes()?
-    # what is the importance of xtst1?
-    end_date = datetime.utcnow().replace(microsecond=0, second=0, minute=0) # get the current time and round it down
-    start_date = (end_date + timedelta(hours= -1)) # subtract one hour into a second variable
-
-    st0 = start_date.strftime("%Y-%m-%dT%H:%M:%SZ") #start date/time formatted for get request
-    st1 = end_date.strftime("%Y-%m-%dT%H:%M:%SZ") #end date/time formatted for get request
-
-    xdst0, xtst0 = start_date.strftime("%Y-%m-%d"), start_date.strftime("%H") #start date/time separately formatted for excel
-    xtst1 = end_date.strftime("%H")
+    st0, st1, xdst0, xtst0, xtst1 = TC.get_formatted_datetimes(1)
 
     try:
         # perform zendesk search of all tickets between those times
         logger.warning('Searching tickets created today between {}:00 and {}:00...'.format(xtst0,xtst1))
 
         TicketCountResult = TC.get_ticket_count(DOMAIN, AUTH, st0, st1)
-        TicketCountResult = json.loads(TicketCountResult.text) #all info related to tickets, including tags, counts are stored inside this JSON
+        TicketCountResult = json.loads(TicketCountResult.text)
 
-        TicketCountVar = TicketCountResult['count'] #int variable to use later
-        logger.warning(str(TicketCountResult['count']) + ' new tickets created today between {}:00 and {}:00...'.format(xtst0,xtst1))
+        TicketCountVar = TicketCountResult['count'] 
+        logger.warning('{} new tickets created today between {}:00 and {}:00...'.format(TicketCountVar, xtst0,xtst1))
         logger.warning('Updating Output File...')
 
-        TicketCount.at[str(xdst0), int(xtst0)] = str(TicketCountResult["count"]) # return the 'count' of the result and store it in the database
-        TicketCount.to_csv(OUTPUT_FILE) # update the ouput file
+        # return the 'count' of the result and store it in the database
+        TicketCount.at[str(xdst0), int(xtst0)] = str(TicketCountResult["count"]) 
+        TicketCount.to_csv(OUTPUT_FILE)
     except Exception as e: 
         logger.warning('Error getting and storing ticket count, ', str(e))
         logger.exception('{}\nError trying to call the Zendesk search API! '.format(str(e)))
         exit()
 
-    TicketCountHistory = pd.read_csv(OUTPUT_FILE) #the output file into a dataframe
+    TicketCountHistory = pd.read_csv(OUTPUT_FILE) 
     spike,delta = calc_spike(TicketCountHistory, TicketCountVar, xtst0)
     spike = True
     logger.warning("Is there a spike? {}".format(spike))
