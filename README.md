@@ -1,7 +1,10 @@
 # Zendesk Spike Notifier
 The Zendesk Spike Notifier is a tool that allows for greater efficiency when identifying and addressing large increases in incoming ticket volume. 
+
 The tool is meant to be run as an hourly cron job, it connects to the Zendesk V2 API and pulls all tickets of a given subdomain that were created over the past hour and records the count. 
+
 The count of each hour is compared to the mean of the counts of the same relative hour over the previous N_HOURS hours. If the count is greater than (1+SPIKE_THRESHOLD)*column mean, then the hour is considered to be a "Spike." 
+
 Once designated a spike, the tool aggregates a list of the N_TAGS most frequently occuring tags from that hour. With that aggregated list, the tool sends an email notification (gmail client) to the RECIPIENT email address so that action may be taken by the agents. 
 
 ## Requirements
