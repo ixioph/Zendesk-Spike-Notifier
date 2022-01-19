@@ -16,4 +16,22 @@ requests, pandas
 
 ## Usage
 To run the tool, simply navigate to ./scripts/ and run the following command: 
-  * python support_volume.py
+  * `python support_volume.py`
+
+Usage relies on the file `/src/auth.ini` to run. An example is included with the repo, but here it is as well: 
+```
+[default]
+SpikeDB = "../out/thePathToYourDatabase.csv"
+
+[zendesk]
+Domain = "yourZendeskDomain"
+Credentials = "YOURZENDESKEMAIL@yourbiz.com/token:YOURZENDESKAPIKEY"
+
+[email]
+Sender = "theSendingEmail@yourbiz.com"
+Password = "yourSendingEmailPassword"
+Recipient = "theRecipientEmail@theirbiz.com"
+
+[misc]
+OmittedTags = ["list", "of", "tags", "to", "omit"]
+```
