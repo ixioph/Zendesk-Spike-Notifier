@@ -65,7 +65,6 @@ def main(logger):
 
     TicketCountHistory = pd.read_csv(OUTPUT_FILE) 
     spike,delta = calc_spike(TicketCountHistory, TicketCountVar, xtst0)
-    spike = True
     logger.warning("Is there a spike? {}".format(spike))
     if spike:
         tags = frequent_tags(TicketCountResult['results'])
