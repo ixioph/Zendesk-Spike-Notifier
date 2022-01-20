@@ -22,9 +22,9 @@ AUTH = config['zendesk']['Credentials'].strip('"')
 SENDER = config['email']['Sender'].strip('"')
 PASS = config['email']['Password'].strip('"')
 RECIPIENT = config['email']['Recipient'].strip('"')
-OMITTED = config['misc']['OmittedTags']
-N_HOURS = 4380
-SPIKE_THRESHOLD = 0.6
+OMITTED = config['mods']['OmittedTags']
+N_HOURS = config['mods']['NumHours']
+SPIKE_THRESHOLD = config['mods']['SpikeThreshold']
 
 def main(logger):
 
