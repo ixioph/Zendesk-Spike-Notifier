@@ -12,3 +12,5 @@ Recipient = "theRecipientEmail@theirbiz.com"
 
 [misc]
 OmittedTags = ["list", "of", "tags", "to", "omit"]
+NumHours = 420
+SpikeThreshold = 0.69
