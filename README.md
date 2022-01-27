@@ -35,3 +35,8 @@ Recipient = "theRecipientEmail@theirbiz.com"
 [misc]
 OmittedTags = ["list", "of", "tags", "to", "omit"]
 ```
+## Modules 
+Brief module explanation. 
+
+## Functions 
+Brief function explanations
