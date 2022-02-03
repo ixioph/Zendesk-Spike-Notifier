@@ -39,7 +39,7 @@ OmittedTags = ["list", "of", "tags", "to", "omit"]
 There are 2 modules in the repo, `support_volume.py` and `ticket_counter.py`. In short, `support_volume.py` is the main driving script which performs the necessary ETL to determine whether or not there has been a spike over the last hour and notifies the email recipients. `ticket_counter.py` is the module used to poll the Zendesk database for the ticket count and generate the initial database.
 
 ### support_volume.py
-support_volume.py requires the pandas library in order to be run. It first checks to see if their is an existing database of hourly volume, if not it calls the ticket_counter module and generates a fresh database. Otherwise, it gets the count of the tickets and compares it against the same hour over the past `N_HOURS` hours. If the volume exceeds the threshold set, it counts up the tags of all of the tickets and sends out an email notification with the offending tags included for diagnosis. 
+`support_volume.py` requires the pandas library in order to be run. It first checks to see if their is an existing database of hourly volume, if not it calls the ticket_counter module and generates a fresh database. Otherwise, it gets the count of the tickets and compares it against the same hour over the past `N_HOURS` hours. If the volume exceeds the threshold set, it counts up the tags of all of the tickets and sends out an email notification with the offending tags included for diagnosis. 
 
 #### Functions 
 Function breakdown for support_volume
