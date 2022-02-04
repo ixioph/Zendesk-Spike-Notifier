@@ -48,4 +48,31 @@ Function breakdown for support_volume
 Detailed description of ticket_counter.py
 
 #### Functions 
-Brief function explanations
+The `run()` function... 
+
+The `get_formatted_datetimes()` function...
+```Python
+def get_formatted_datetimes(t_delta):
+  now = datetime.utcnow().replace(microsecond=0, second=0, minute=0)
+  start_date = (now + timedelta(hours= -t_delta))
+  st0 = start_date.strftime("%Y-%m-%dT%H:%M:%SZ") 
+  sub_start_date = (start_date + timedelta(hours= 1))
+  st1 = sub_start_date.strftime("%Y-%m-%dT%H:%M:%SZ") 
+  xdst0, xtst0 = start_date.strftime("%Y-%m-%d"), start_date.strftime("%H") 
+  xtst1 = now.strftime("%H")
+  return st0, st1, xdst0, xtst0, 
+```
+
+The `get_ticket_count()` function...
+```Python
+def get_ticket_count(dom, auth, st0, st1):
+  print(b64encode(auth.encode('utf-8'))[2:-1])
+  header = {"Authorization": "Basic {}".format(str(b64encode(auth.encode('utf-8')))[2:-1])}
+  url = f"https://{dom}.zendesk.com/api/v2/search.json?query=type:ticket+created>{st0}+created<{st1}"
+  try:
+    r = requests.get(url, headers=header)
+    return r
+  except Exception as err: 
+    print('Error making zendesk GET request:', str(err))
+    exit()
+```
