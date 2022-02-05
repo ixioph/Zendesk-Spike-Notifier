@@ -42,7 +42,51 @@ There are 2 modules in the repo, `support_volume.py` and `ticket_counter.py`. In
 `support_volume.py` requires the pandas library in order to be run. It first checks to see if their is an existing database of hourly volume, if not it calls the ticket_counter module and generates a fresh database. Otherwise, it gets the count of the tickets and compares it against the same hour over the past `N_HOURS` hours. If the volume exceeds the threshold set, it counts up the tags of all of the tickets and sends out an email notification with the offending tags included for diagnosis. 
 
 #### Functions 
-Function breakdown for support_volume
+The `calc_spike()` function...
+```Python
+def calc_spike(db, count, col, spike=SPIKE_THRESHOLD):
+    threshold = db[col].mean()*(spike+1)
+    return count > threshold, (count - db[col].mean()) / db[col].mean() * 100
+```
+The `frequent_tags()` function...
+```Python
+def frequent_tags(tickets, n_tags=10, omitted=OMITTED):
+    tags = {}
+    for ticket in tickets:
+        for tag in ticket['tags']:
+            if tag in omitted:
+                continue
+            if tag not in tags.keys():
+                tags[tag] = 1
+            else:
+                tags[tag] += 1
+    top_tags = sorted(tags.items(), key=lambda x: x[1], reverse=True)[:n_tags]
+    return top_tags
+```
+
+The `send_report()` function...
+```Python
+def send_report(to, count, tags, delta, auth = None, subject='Ticket Spike Alert!'):
+    try:
+        email = smtplib.SMTP('smtp.gmail.com', 587)
+        email.starttls()
+
+        email.login(auth[0], auth[1])
+
+        message = ("Greetings Crunchyroll Humans, \n\n"
+                "My calculations have detected the emergence of a potential spike in the past hour! \n\n"
+                "We’ve received {} tickets in the past hour. \n"
+                "This is an increase of {} % over our average for this hour over the past 6 months. \n\n"
+                "Below you will find the most frequent tags over this past hour: \n{}").format(count, delta, tags)
+        message = 'Subject: {}\n\n{}'.format(subject, message).encode('utf-8')
+
+        email.sendmail(auth[0], to, message)
+        email.quit()
+    except Exception as e:
+        print('ERROR: ', str(e))
+        exit()
+    return 0
+```
 
 ### ticket_counter.py
 Detailed description of ticket_counter.py
