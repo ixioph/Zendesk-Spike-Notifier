@@ -12,6 +12,8 @@ To run this tool, the following libraries first need to be installed:
   * requests
   * pandas
   * smtplib
+
+
 requests, pandas 
 
 ## Usage
