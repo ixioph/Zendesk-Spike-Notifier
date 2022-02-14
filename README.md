@@ -44,13 +44,14 @@ There are 2 modules in the repo, `support_volume.py` and `ticket_counter.py`. In
 `support_volume.py` requires the pandas library in order to be run. It first checks to see if their is an existing database of hourly volume, if not it calls the ticket_counter module and generates a fresh database. Otherwise, it gets the count of the tickets and compares it against the same hour over the past `N_HOURS` hours. If the volume exceeds the threshold set, it counts up the tags of all of the tickets and sends out an email notification with the offending tags included for diagnosis. 
 
 #### Functions 
-The `calc_spike()` function...
+The `calc_spike()` function takes the database/pandas dataframe, the ticket count of the past hour, the current column/hour, and the spike threshold as arguments returns a boolean of whether it qualifies as a spike and the % increase over the mean.
+
 ```Python
 def calc_spike(db, count, col, spike=SPIKE_THRESHOLD):
     threshold = db[col].mean()*(spike+1)
     return count > threshold, (count - db[col].mean()) / db[col].mean() * 100
 ```
-The `frequent_tags()` function...
+The `frequent_tags()` function takes the json output of tickets as an argument (requests.get().text['results'], the number of tags to return, and a list of tags to omit from the search (i.e. - infrastructure tags) returns a list of the top N tags in the source ticket list
 ```Python
 def frequent_tags(tickets, n_tags=10, omitted=OMITTED):
     tags = {}
@@ -66,7 +67,7 @@ def frequent_tags(tickets, n_tags=10, omitted=OMITTED):
     return top_tags
 ```
 
-The `send_report()` function...
+The `send_report()` function takes the recipient email, hourly count, and frequent tags as arguments auth should be a tuple containing the sender email id and sender email id password builds a message and sends it to the recipient
 ```Python
 def send_report(to, count, tags, delta, auth = None, subject='Ticket Spike Alert!'):
     try:
