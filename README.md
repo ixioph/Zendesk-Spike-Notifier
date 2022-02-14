@@ -45,12 +45,12 @@ There are 2 modules in the repo, `support_volume.py` and `ticket_counter.py`. In
 
 #### Functions 
 The `calc_spike()` function takes the database/pandas dataframe, the ticket count of the past hour, the current column/hour, and the spike threshold as arguments returns a boolean of whether it qualifies as a spike and the % increase over the mean.
-
 ```Python
 def calc_spike(db, count, col, spike=SPIKE_THRESHOLD):
     threshold = db[col].mean()*(spike+1)
     return count > threshold, (count - db[col].mean()) / db[col].mean() * 100
 ```
+
 The `frequent_tags()` function takes the json output of tickets as an argument (requests.get().text['results'], the number of tags to return, and a list of tags to omit from the search (i.e. - infrastructure tags) returns a list of the top N tags in the source ticket list
 ```Python
 def frequent_tags(tickets, n_tags=10, omitted=OMITTED):
@@ -97,7 +97,7 @@ Detailed description of ticket_counter.py
 #### Functions 
 The `run()` function... 
 
-The `get_formatted_datetimes()` function...
+The `get_formatted_datetimes()` function takes an integer t_delta as an argument returns a set of times, with the start date being current hour - t_delta
 ```Python
 def get_formatted_datetimes(t_delta):
   now = datetime.utcnow().replace(microsecond=0, second=0, minute=0)
@@ -110,7 +110,7 @@ def get_formatted_datetimes(t_delta):
   return st0, st1, xdst0, xtst0, 
 ```
 
-The `get_ticket_count()` function...
+The `get_ticket_count()` function takes the zendesk account subdomain, and a start and end datetime (%Y-%m-%dT%H:%M:%SZ) returns the result of a GET request to the Zendesk v2 API
 ```Python
 def get_ticket_count(dom, auth, st0, st1):
   print(b64encode(auth.encode('utf-8'))[2:-1])
